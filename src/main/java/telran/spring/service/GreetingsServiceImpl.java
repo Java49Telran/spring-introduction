@@ -1,41 +1,60 @@
 package telran.spring.service;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.stereotype.Service;
+
+import telran.exceptions.NotFoundException;
+import telran.spring.Person;
 @Service
 public class GreetingsServiceImpl implements GreetingsService {
-    Map<Long, String> greetingsMap = new HashMap<>(Map.of(123l, "David", 124l, "Sara",125l, "Rivka"));
+    Map<Long, Person> greetingsMap = new HashMap<>();
 	@Override
 	public String getGreetings(long id) {
 		
-		String name =  greetingsMap.getOrDefault(id, "Unknown Guest");
+		Person person =  greetingsMap.get(id);
+		String name = person == null ? "Unknown guest" : person.name();
 		return "Hello, " + name;
 	}
+	
 	@Override
-	public String addName(IdName idName) {
-		String name = greetingsMap.putIfAbsent(idName.id(), idName.name());
-		if(name != null) {
-			throw new IllegalStateException(idName.id() + " already exists");
-		}
-		return idName.name();
+	public Person getPerson(long id) {
+		
+		return greetingsMap.get(id);
 	}
 	@Override
-	public String deleteName(long id) {
-		String name = greetingsMap.remove(id);
-		if(name == null) {
-			throw new IllegalStateException(id + " not found");
-		}
-		return name;
+	public List<Person> getPersonsByCity(String city) {
+		
+		return greetingsMap.values().stream()
+				.filter(p -> p.city().equals(city))
+				.toList();
 	}
 	@Override
-	public String updateName(IdName idName) {
-		if(!greetingsMap.containsKey(idName.id())) {
-			throw new IllegalStateException(idName.id() + " not found");
+	public Person addPerson(Person person) {
+		long id = person.id();
+		if (greetingsMap.containsKey(id) ){
+			throw new IllegalStateException(String.format("person with id %d already exists", id));
 		}
-		greetingsMap.put(idName.id(), idName.name());
-		return idName.name();
+		 greetingsMap.put(id, person);
+		 return person;
+	}
+	@Override
+	public Person deletePerson(long id) {
+		if (!greetingsMap.containsKey(id) ){
+			throw new NotFoundException(String.format("person with id %d doesn't exist", id));
+		}
+		return greetingsMap.remove(id);
+	}
+	@Override
+	public Person updatePerson(Person person) {
+		long id = person.id();
+		if (!greetingsMap.containsKey(id) ){
+			throw new NotFoundException(String.format("person with id %d doesn't exist", id));
+		}
+		greetingsMap.put(id, person);
+		return person;
 	}
 
 }
