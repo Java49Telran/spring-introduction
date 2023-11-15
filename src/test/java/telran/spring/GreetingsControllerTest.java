@@ -1,6 +1,7 @@
 package telran.spring;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -54,10 +55,27 @@ public class GreetingsControllerTest {
      }
      @Test
      void normalFlowAddPerson() throws Exception{
-    	 mockMvc.perform(post("http://localhost:8080/greetings")
+    	 when(greetingsService.addPerson(personNormal)).thenReturn(personNormal);
+    	 String personJson = objectMapper.writeValueAsString(personNormal);
+    	 String response = mockMvc.perform(post("http://localhost:8080/greetings")
     			 .contentType(MediaType.APPLICATION_JSON)
-    			 .content(objectMapper.writeValueAsString(personNormal)))
-    	 .andDo(print()).andExpect(status().isOk());
+    			 .content(personJson))
+    	 .andDo(print()).andExpect(status().isOk())
+    	 .andReturn().getResponse().getContentAsString();
+    	 assertEquals(personJson, response);
+     }
+     @Test
+     void alreadyExistsAddPerson() throws Exception{
+    	 String exceptionMessage = "already exists";
+    	 when(greetingsService.addPerson(personNormal))
+    	 .thenThrow(new IllegalStateException(exceptionMessage));
+    	 String personJson = objectMapper.writeValueAsString(personNormal);
+    	 String response = mockMvc.perform(post("http://localhost:8080/greetings")
+    			 .contentType(MediaType.APPLICATION_JSON)
+    			 .content(personJson))
+    	 .andDo(print()).andExpect(status().isBadRequest())
+    	 .andReturn().getResponse().getContentAsString();
+    	 assertEquals(exceptionMessage, response);
      }
      @Test
      void addPersonWrongPhone() throws Exception{
