@@ -1,9 +1,8 @@
 package telran.spring.service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+import java.io.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -87,15 +86,30 @@ public class GreetingsServiceImpl implements GreetingsService {
 
 	@Override
 	public void save(String fileName) {
-		// TODO saving persons data into ObjectOutputStream
-		log.info("persons data have been saved");
+		try(ObjectOutputStream output = new ObjectOutputStream(new FileOutputStream(fileName))) {
+			output.writeObject(new ArrayList<Person>(greetingsMap.values()));
+			log.info("persons data have been saved");
+		} catch (Exception e) {
+			log.error("{}", e);
+		}
+		
 		
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void restore(String fileName) {
-		// TODO restoring from file using ObjectInputStream
-		log.info("restored from file");
+		try(ObjectInputStream input =
+				new ObjectInputStream(new FileInputStream(fileName))) {
+			List<Person> employeesList = (List<Person>) input.readObject();
+			employeesList.forEach(this::addPerson);
+			log.info("restored from file");
+		} catch (FileNotFoundException e) {
+			log.warn("No file with data found");
+		} catch (Exception e) {
+			log.error("{}", e);
+		}
+		
 		
 	}
 	@PostConstruct
