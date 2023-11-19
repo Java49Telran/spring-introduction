@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,6 +72,22 @@ GreetingsService greetingsService;
 	@Order(8)
 	void persistenceTest() {
 		assertEquals(personNormalUpdated, greetingsService.getPerson(123));
+	}
+	@Test
+	@Order(9)
+	void getPersonsByCityTest() {
+		List<Person> expected = List.of(personNormalUpdated);
+		assertIterableEquals(expected, greetingsService.getPersonsByCity("Lod"));
+		assertTrue(greetingsService.getPersonsByCity("Rehovot").isEmpty());
+	}
+	@Test
+	@Order(10)
+	void deleteTest() {
+		assertEquals(personNormalUpdated, greetingsService.deletePerson(123));
+		
+		assertTrue(greetingsService.getPersonsByCity("Lod").isEmpty());
+		assertTrue(greetingsService.getPersonsByCity("Rehovot").isEmpty());
+		assertThrowsExactly(NotFoundException.class, () -> greetingsService.deletePerson(123));
 	}
 	
 

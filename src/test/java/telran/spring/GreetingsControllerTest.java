@@ -181,9 +181,10 @@ public class GreetingsControllerTest {
      void getPersonsByCityTest() throws Exception {
     	 String city = "Rehovot";
     	 when(greetingsService.getPersonsByCity(city))
-    	 .thenReturn(List.of(personNormal));
+    	 .thenReturn(List.of(personNormal, personNormalUpdated));
     	Person[] expected = {
-    			personNormal
+    			personNormal,
+    			personNormalUpdated
     	};
 		String response = mockMvc.perform(get("http://localhost:8080/greetings/city/" + city))
     	 .andDo(print()).andExpect(status().isOk())
